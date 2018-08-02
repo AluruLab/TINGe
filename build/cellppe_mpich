@@ -1,0 +1,17 @@
+# Name suffix
+SUFFIX=".ppe32"
+
+# C++ compiler
+CELL_SDK=/opt/cell/toolchain
+CXX=$CELL_SDK/bin/ppu32-g++
+
+# C++ optimisation options (you may tune them for your environment)
+CXX_OPTIM="-m32 -mabi=altivec -maltivec -O3"
+
+# C++ extra options (other than -Ox)
+MPI_PATH=/opt/mpich2-1.1.1-ppc
+CXX_EXTRA="-g -DNDEBUG -DMPICH_IGNORE_CXX_SEEK -I$MPI_PATH/include"
+
+# Link
+LINKFLAGS="-L$MPI_PATH/lib -m32 -Wl,-m,elf32ppc"
+LINKLIBS="-lspe2 -lpthread -lmpich"

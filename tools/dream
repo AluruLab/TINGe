@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# $Id$
+#
+# File: dream
+# Developed: Mar 23, 2010
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+if [ -z "$2" ]; then
+    echo "usage: dream dir net"
+    exit
+fi
+
+DIR=$1
+NET=$2
+
+TMP=`mktemp`
+SIF=`echo $NET | sed -e 's/\..*adj$//'`
+
+adj-consensus 0.0 $DIR sup > $NET
+adj2sif $NET
+tail -n +2 $SIF.weight.eda > $TMP
+pr -m -t -s $SIF.sif $TMP | awk '{print $1"\t"$3"\t"$8}' | sort -n -k 3 -r
+
+rm $TMP

@@ -1,0 +1,29 @@
+SubDir TOP tools ;
+
+LOCATE_TARGET = $(TOP)/obj ;
+
+HDRS += $(TOP)/src ;
+
+T1 = residuals$(SUFFIX) ;
+TARGETS +=  $(T1) ;
+
+SCRIPTS = adj-compact
+	  adj-consensus
+	  adj-mi2cc
+	  adj-probes
+	  adj-prune
+	  adj-size
+	  adj2lab
+	  adj2sif
+	  csv2exp
+	  dream
+	  exp-select
+	  exp-size
+	  mcl2noa
+	  sif-compare
+	  sif2adj ;
+
+LinkLibraries $(T1) : $(TARGET) ;
+
+Main $(T1) : residuals.cxx ;
+InstallBin $(TOP)/bin : $(SCRIPTS) ;

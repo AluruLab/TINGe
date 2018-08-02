@@ -1,0 +1,143 @@
+#!/usr/bin/perl
+
+# $Id: adj-consensus 597 2010-06-23 01:06:56Z zola $
+#
+# File: adj-consensus
+# Developed: Feb 26, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+my $usage = "usage: adj-consensus threshold dir [mi|sup]\n";
+die $usage if (@ARGV < 2);
+
+my $thr = $ARGV[0];
+die "error: incorrect threshold\n"
+    if (($thr !~ m/^(\d+\.?\d*|\.\d+)$/) || ($thr < 0) || ($thr > 1));
+
+my $use_mi = 1;
+
+if (defined $ARGV[2]) {
+    die "error: incorrect argument\n" if (($ARGV[2] ne "mi") && ($ARGV[2] ne "sup"));
+    $use_mi = 0 if ($ARGV[2] eq "sup");
+}
+
+# get adj files
+my $dir_name = $ARGV[1];
+$dir_name =~ s/\/$//;
+
+opendir(DIR, $dir_name) or die "error: can't open directory\n";
+my @files = grep(/\.adj$/, readdir(DIR));
+closedir(DIR);
+
+die "error: directory empty\n" if (scalar(@files) == 0);
+
+# get all edges
+my %edge_mi;
+my %edge_sup;
+
+my $max_sup = scalar(@files);
+
+# adj reading integrated for efficiency
+foreach (@files) {
+    open(INPUT, "< $dir_name/$_") or die "error: can't open input file\n";
+    print STDERR "$dir_name/$_\n";
+
+    my $input;
+    while ((defined ($input = <INPUT>)) && ($input =~ m/^>/)) { }
+
+    my %key_in_file;
+
+    if (defined $input) {
+	do {
+	    chomp($input);
+
+	    my @line = split("\t", $input);
+	    my $len = scalar(@line);
+	    die "error: data corrupted\n" if (($len < 3) || (($len - 1) % 2 != 0));
+
+	    my $s = $line[0];
+	    for (my $i = 1; $i < $len; $i += 2) {
+		my $ms = $s;
+		my $t = $line[$i];
+
+		($ms, $t) = ($t, $ms) if ($t lt $ms);
+
+		my $key = "$ms\t$t";
+
+		if (not defined $key_in_file{$key}) {
+		    $key_in_file{$key} = 1;
+
+		    if (defined $edge_sup{$key}) {
+			$edge_mi{$key} += $line[$i + 1];
+			$edge_sup{$key}++;
+		    } else {
+			$edge_mi{$key} = $line[$i + 1];
+			$edge_sup{$key} = 1;
+		    }
+
+		}
+	    }
+	} while ($input = <INPUT>);
+    }
+}
+
+# count data
+my $le = "";
+my %nodes;
+my $num_edges = 0;
+
+foreach (keys %edge_sup) {
+    my ($s, $t) = split("\t", $_);
+    $nodes{$s} = $s;
+    $nodes{$t} = $t;
+    $num_edges++ if ($thr < ($edge_sup{$_} / $max_sup));
+}
+
+my $tot_edges = scalar(keys %edge_mi);
+my $num_nodes = scalar(keys %nodes);
+my $density = (2 * $num_edges) / (($num_nodes * $num_nodes) - $num_nodes);
+
+# write consensus
+my $date = `date`;
+chomp($date);
+
+print "> Date: ........................ $date\n";
+print "> Bootstrap dir: ............... $dir_name/\n";
+print "> Number of files: ............. $max_sup\n";
+print "> Threshold..................... $thr\n";
+print "> Edges tested.................. $tot_edges\n";
+print "> Network dimensions: .......... " . $num_nodes . "x" . $num_edges . "\n";
+printf '> Network density: ............. %.5f', $density;
+
+my $ls = "";
+foreach (sort(keys %edge_mi)) {
+    my ($s, $t) = split("\t", $_);
+    my $sup = $edge_sup{$_} / $max_sup;
+    if ($thr < $sup) {
+	$sup = ($edge_mi{$_} / $max_sup) if ($use_mi == 1);
+	print "\n$s" if ($ls ne $s);
+	print "\t$t\t$sup";
+	$ls = $s;
+    }
+}

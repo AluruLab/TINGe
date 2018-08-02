@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+
+# $Id: adj2lab 597 2010-06-23 01:06:56Z zola $
+#
+# File: adj2lab
+# Developed: Jun 20, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+my $usage = "usage: adj2lab infile\n";
+die $usage if (@ARGV != 1);
+
+my $infile = $ARGV[0];
+my $outfile = "";
+
+($outfile = $infile) =~ s/\.c?adj$//;
+$outfile .= ".lab";
+
+open(INPUT, "< $infile") or die "error: can't open input file\n";
+open(OUTPUT, "> $outfile") or die "error: can't open output file\n";
+
+# adj reading integrated for efficiency
+
+# skip comments
+my $input;
+while ((defined ($input = <INPUT>)) && ($input =~ m/^>/)) { }
+
+if (defined $input) {
+    # process data
+    do {
+	chomp($input);
+
+	my @line = split("\t", $input);
+	my $len = scalar(@line);
+	die "error: data corrupted\n" if (($len < 3) || (($len - 1) % 2 != 0));
+
+	my $s = $line[0];
+	for (my $i = 1; $i < $len; $i += 2) {
+	    my $t = $line[$i];
+	    my $edge = "$s $t";
+	    $edge = "$t $s" if ($t lt $s);
+	    print OUTPUT "$edge $line[$i + 1]\n";
+	}
+    } while ($input = <INPUT>);
+}
+
+close(OUTPUT);
+close(INPUT);

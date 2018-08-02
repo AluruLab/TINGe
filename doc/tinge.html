@@ -1,0 +1,559 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML
+><HEAD
+><TITLE
+>tinge</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
+><BODY
+CLASS="REFENTRY"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><H1
+><A
+NAME="TINGE"
+></A
+>tinge</H1
+><DIV
+CLASS="REFNAMEDIV"
+><A
+NAME="AEN5"
+></A
+><H2
+>Name</H2
+>TINGe&nbsp;--&nbsp;Tool Inferring Networks of GEnes</DIV
+><DIV
+CLASS="REFSYNOPSISDIV"
+><A
+NAME="AEN8"
+></A
+><H2
+>Synopsis</H2
+><P
+><B
+CLASS="COMMAND"
+>tinge-mi</B
+>  {-i <TT
+CLASS="REPLACEABLE"
+><I
+>file</I
+></TT
+>}  <TT
+CLASS="REPLACEABLE"
+><I
+>options</I
+></TT
+>... </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN15"
+></A
+><H2
+>Description</H2
+><P
+>      TINGe is a parallel tool for constructing gene regulatory networks
+      from large-scale gene expression data. It uses information theoretic
+      criteria and statistical testing to detect dependencies between genes,
+      and it can be run on large parallel machines, such as IBM Blue Gene.
+      TINGe is implemented in C++ and MPI, therefore it should be
+      executed in the MPI environment by using an adequate <B
+CLASS="COMMAND"
+>mpiexec</B
+>
+      command.
+    </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN19"
+></A
+><H2
+>Options</H2
+><P
+>      In general, TINGe tries to maintain compatibility of options, and file
+      formats, with ARACNe. Please refer to [1] for the detailed description of
+      file formats.
+    </P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>-i <TT
+CLASS="REPLACEABLE"
+><I
+>file</I
+></TT
+></DT
+><DD
+><P
+>	    Read expression profiles from <TT
+CLASS="FILENAME"
+>file</TT
+>.
+	  </P
+></DD
+><DT
+>-o <TT
+CLASS="REPLACEABLE"
+><I
+>file</I
+></TT
+></DT
+><DD
+><P
+>	    Write output network to <TT
+CLASS="FILENAME"
+>file</TT
+>. If option is
+	    not specified, the output file is created by changing extension of
+	    the input file to <TT
+CLASS="FILENAME"
+>.adj</TT
+>.
+	  </P
+></DD
+><DT
+>-j <TT
+CLASS="REPLACEABLE"
+><I
+>file</I
+></TT
+></DT
+><DD
+><P
+>	    Read relevance network from <TT
+CLASS="FILENAME"
+>file</TT
+>.
+	  </P
+></DD
+><DT
+>-w <TT
+CLASS="REPLACEABLE"
+><I
+>file</I
+></TT
+></DT
+><DD
+><P
+>	    Store relevance network in <TT
+CLASS="FILENAME"
+>file</TT
+>.
+	  </P
+></DD
+><DT
+>-l <TT
+CLASS="REPLACEABLE"
+><I
+>file</I
+></TT
+></DT
+><DD
+><P
+>	    Read list of transcription factors from <TT
+CLASS="FILENAME"
+>file</TT
+>.
+	  </P
+></DD
+><DT
+>-a <TT
+CLASS="REPLACEABLE"
+><I
+>estimator</I
+></TT
+></DT
+><DD
+><P
+>	    Set the estimator that should be used to calculate mutual
+	    information to <CODE
+CLASS="PARAMETER"
+>estimator</CODE
+>. Currently two
+	    estimators are provided:
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>B</I
+></TT
+> for B-spline
+	    estimator [2], and <TT
+CLASS="REPLACEABLE"
+><I
+>G</I
+></TT
+>
+	    for Gaussian kernel estimator [3]. We highly recommend using
+	    the B-spline estimator for its high performance and accuracy. By
+	    default the B-spline estimator is used.
+	  </P
+></DD
+><DT
+>-b <TT
+CLASS="REPLACEABLE"
+><I
+>bins</I
+></TT
+></DT
+><DD
+><P
+>	    Set the number of bins used by the B-Spline mutual information estimator
+	    to <TT
+CLASS="REPLACEABLE"
+><I
+>bins</I
+></TT
+>.
+	    This option is ignored if Gaussian kernel estimator is used.
+	    By default 10 bins are used. See [2] for a more detailed explanation.
+	  </P
+></DD
+><DT
+>-k <TT
+CLASS="REPLACEABLE"
+><I
+>order</I
+></TT
+></DT
+><DD
+><P
+>	    Set the order of basis B-Spline functions used by the mutual information
+	    estimator to <TT
+CLASS="REPLACEABLE"
+><I
+>order</I
+></TT
+>.
+	    This option is ignored if Gaussian kernel estimator is used.
+	    Default is 4. See [2] for a more detailed explanation.
+	  </P
+></DD
+><DT
+>-p <TT
+CLASS="REPLACEABLE"
+><I
+>pval</I
+></TT
+></DT
+><DD
+><P
+>	    Set the significance level of testing if mutual information is
+	    statistically greater than 0 to <TT
+CLASS="REPLACEABLE"
+><I
+>pval</I
+></TT
+>.
+	    This option is mutually exclusive with <TT
+CLASS="REPLACEABLE"
+><I
+>-t</I
+></TT
+>.
+	    Default is 1.0, that is, no test is performed. See [4] for a more
+	    detailed explanation.
+	  </P
+></DD
+><DT
+>-t <TT
+CLASS="REPLACEABLE"
+><I
+>threshold</I
+></TT
+></DT
+><DD
+><P
+>	    Set the threshold value for mutual information to
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>threshold</I
+></TT
+>.
+	    This option is mutually exclusive with <TT
+CLASS="REPLACEABLE"
+><I
+>-p</I
+></TT
+>.
+	  </P
+></DD
+><DT
+>-e <TT
+CLASS="REPLACEABLE"
+><I
+>tolerance</I
+></TT
+></DT
+><DD
+><P
+>	    Set the tolerance of data processing inequality to
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>tolerance</I
+></TT
+>.
+	    Default is 1.0, that is, no processing is applied.
+	    See [1] for a more detailed explanation.
+	  </P
+></DD
+><DT
+>-C <TT
+CLASS="REPLACEABLE"
+><I
+>method</I
+></TT
+></DT
+><DD
+><P
+>	    Convert final mutual information using <TT
+CLASS="REPLACEABLE"
+><I
+>method</I
+></TT
+>.
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>C</I
+></TT
+> converts mutual information
+	    to correlation coefficient using formula by Joe [5].
+	    Currently only this method is supported. By default no conversion
+	    is applied.
+	  </P
+></DD
+><DT
+>-r <TT
+CLASS="REPLACEABLE"
+><I
+>size</I
+></TT
+></DT
+><DD
+><P
+>	    Set the number of generated bootstrap networks to
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>size</I
+></TT
+>.
+	    This option is mutually exclusive with
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>-y</I
+></TT
+>.
+	    Default is 0, that is, no bootstrapping is applied.
+	  </P
+></DD
+><DT
+>-y <TT
+CLASS="REPLACEABLE"
+><I
+>size</I
+></TT
+></DT
+><DD
+><P
+>	    Set the number of columns used for analysis to
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>size</I
+></TT
+>. If set,
+	    only <TT
+CLASS="REPLACEABLE"
+><I
+>size</I
+></TT
+> randomly
+	    selected columns (with no replacement) are used. This option is
+	    mutually exclusive with <TT
+CLASS="REPLACEABLE"
+><I
+>-r</I
+></TT
+>.
+	    Default is 0, that is, no sampling is applied.
+	  </P
+></DD
+><DT
+>-x <TT
+CLASS="REPLACEABLE"
+><I
+>seed</I
+></TT
+></DT
+><DD
+><P
+>	    Set random seed utilized in statistical tests to
+	    <TT
+CLASS="REPLACEABLE"
+><I
+>seed</I
+></TT
+>.
+	    By default seed is generated from the current time and process identifier.
+	  </P
+></DD
+><DT
+>-m</DT
+><DD
+><P
+>	    Turn on memory usage reports. By default reports are disabled.
+	    On some architectures memory reports might be incorrect.
+	  </P
+></DD
+><DT
+>-v</DT
+><DD
+><P
+>	    Show progress, i.e. notify about iteration progress during the main
+	    processing phase.
+	  </P
+></DD
+><DT
+>-h</DT
+><DD
+><P
+>	    Show summary of options.
+	  </P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN134"
+></A
+><H2
+>Example</H2
+><DIV
+CLASS="INFORMALEXAMPLE"
+><P
+></P
+><A
+NAME="AEN136"
+></A
+><PRE
+CLASS="PROGRAMLISTING"
+>	mpiexec -np 32 tinge-mi -i tost.exp -p 0.001 -e 0.1
+      </PRE
+><P
+></P
+></DIV
+><P
+>      The above command will execute tinge-mi on 32 processors. A network
+      will be created based on the expression data from <TT
+CLASS="FILENAME"
+>tost.exp</TT
+>
+      and it will be stored in <TT
+CLASS="FILENAME"
+>tost.adj</TT
+>. Statistical testing
+      at significance level of 0.001 will be performed, and data processing
+      inequality will be applied with tolerance of 0.1.
+    </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN141"
+></A
+><H2
+>References</H2
+><P
+>      [1] Margolin, A.A. et al., "Reverse engineering cellular networks",
+      Nature Protocols, vol. 1 no. 2, 2006.
+      <P
+CLASS="LITERALLAYOUT"
+></P
+>
+      [2] Daub, C.O. et al., "Estimating mutual information using B-spline
+      functions - an improved similarity measure for analysing gene
+      expression data", BMC Bioinformatics, vol. 5 no. 118, 2004.
+      <P
+CLASS="LITERALLAYOUT"
+></P
+>
+      [3] Moon, Y., Rajagopalan, B.,  Lall, U., "Estimation of mutual information using kernel density estimators",
+      Physical Review E., vol. 52 no. 3, 1995.
+      <P
+CLASS="LITERALLAYOUT"
+></P
+>
+      [4] Zola, J., Aluru, M., Sarje, A., Aluru, S., "Parallel information theory based construction
+      of genome wide gene regulatory networks", In IEEE Transactions on Parallel and Distributed Systems,
+      vol. 21, no. 12, pp. 1721-1733, 2010.
+      <P
+CLASS="LITERALLAYOUT"
+></P
+>
+      [5] Joe, H., "Relative entropy measures of multivariate dependence",
+      Journal of the American Statistical Association, vol. 84 no. 405, 1989.
+    </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN148"
+></A
+><H2
+>Bugs</H2
+><P
+>      Bugs? What bugs? Well, if you are <SPAN
+CLASS="emphasis"
+><I
+CLASS="EMPHASIS"
+>sure</I
+></SPAN
+> that you have
+      found a bug you can contact Jaroslaw Zola.
+    </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN152"
+></A
+><H2
+>Author</H2
+><P
+>      Jaroslaw Zola &lt;jaroslaw.zola@gmail.com&gt;,
+      Maneesha Aluru, Dan Nettleton, Srinivas Aluru.
+    </P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN155"
+></A
+><H2
+>Copyright</H2
+><P
+>      TINGe (C) 2007-2012 Jaroslaw Zola under GNU GPLv3 License.
+      The build system, (c) 2006-2010 Jaroslaw Zola under the MIT License.
+      The JAZ code, (c) 2004-2010 Jaroslaw Zola under the Boost Software License.
+      The MPIX code, (c) 2005-2008 Jaroslaw Zola under the Boost Software License.
+    </P
+></DIV
+></BODY
+></HTML
+>

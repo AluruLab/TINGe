@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+
+# $Id: sif2adj 597 2010-06-23 01:06:56Z zola $
+#
+# File: sif2adj
+# Developed: Mar 05, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+# *** currently edge types are ignored ***
+sub read_sif {
+    my $infile = $_[0];
+    my @edges;
+
+    open(INPUT, "< $infile") or die "error: can't open input file\n";
+
+    # process data
+    while (my $input = <INPUT>) {
+	chomp($input);
+
+	my @line = split(" ", $input);
+	my $len = scalar(@line);
+
+	my $s = $line[0];
+	for (my $i = 2; $i < $len; $i++) {
+	    my $t = $line[$i];
+	    my $edge = "$s\t$t";
+	    $edge = "$t\t$s" if ($t lt $s);
+	    push @edges, $edge if ($s ne $t);
+	}
+    }
+
+    close(INPUT);
+
+    # make array unique
+    my %keys;
+    @keys{@edges} = ();
+    @edges = keys %keys;
+
+    return @edges;
+}
+
+
+sub read_eda {
+    my $eda_file = $_[0];
+    my @edges = @{$_[1]};
+
+    # read in weights
+    open(INPUT, "< $eda_file") or die "error: can't open eda file\n";
+    my $input = <INPUT>;
+
+    my %eda;
+
+    if (defined $input) {
+	while ($input = <INPUT>) {
+	    my ($s, undef, $t, undef, $w) = split(" ", $input);
+	    die "error: data corrupted\n" if ((not defined $s) || (not defined $t) || (not defined $w));
+	    ($s, $t) = ($t, $s) if ($t lt $s);
+	    $eda{"$s\t$t"} = $w;
+	}
+    }
+
+    close(INPUT);
+
+    # modify edges
+    for my $i (0..@edges - 1) {
+	my $e = $edges[$i];
+	my $w = 0;
+	$w = $eda{$e} if (defined $eda{$e});
+	$edges[$i] = $e . "\t$w";
+    }
+
+    return @edges;
+}
+
+
+my $usage = "usage: sif2adj infile eda_file [outfile]\n";
+die $usage if (@ARGV < 2);
+
+my $infile = $ARGV[0];
+my $eda_file = $ARGV[1];
+my $adj_file = $infile;
+
+if (defined $ARGV[2]) { $adj_file = $ARGV[2]; }
+else { $adj_file =~ s/\....$/.adj/; }
+
+my @edges = read_sif($infile);
+@edges = read_eda($eda_file, \@edges);
+
+# write edges
+open(OUTPUT, "> $adj_file") or die "error: can't open output file\n";
+
+print OUTPUT "> Created from $infile";
+my $ls = "";
+foreach (sort(@edges)) {
+    my ($s, $t, $w) = split("\t", $_);
+    print OUTPUT "\n$s" if ($ls ne $s);
+    print OUTPUT "\t$t\t$w";
+    $ls = $s;
+}
+print OUTPUT "\n";
+close(OUTPUT);

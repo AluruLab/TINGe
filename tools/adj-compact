@@ -1,0 +1,176 @@
+#!/usr/bin/perl
+
+# $Id: adj-compact 597 2010-06-23 01:06:56Z zola $
+#
+# File: adj-compact
+# Developed: Feb 25, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+sub read_adj {
+    my $infile = $_[0];
+    my @edges;
+    open(INPUT, "< $infile") or die "error: can't open input file\n";
+
+    # skip comments
+    my $input;
+    while ((defined ($input = <INPUT>)) && ($input =~ m/^>/)) { }
+
+    if (defined $input) {
+	# process data
+	do {
+	    chomp($input);
+
+	    my @line = split("\t", $input);
+	    my $len = scalar(@line);
+	    die "error: data corrupted\n" if (($len < 3) || (($len - 1) % 2 != 0));
+
+	    my $s = $line[0];
+	    for (my $i = 1; $i < $len; $i += 2) {
+		my $t = $line[$i];
+		my $edge = "$s\t$t\t$line[$i + 1]";
+		$edge = "$t\t$s\t$line[$i + 1]" if ($t lt $s);
+		push @edges, $edge;
+	    }
+	} while ($input = <INPUT>);
+    }
+
+    close(INPUT);
+
+    # make array unique
+    my %keys;
+    @keys{@edges} = ();
+    @edges = keys %keys;
+
+    return @edges;
+}
+
+
+# MAKE ADJ FILE COMPACTING
+# multiple probes describing the same gene are merged into
+# one node labeled with lexicographically smallest probe,
+# weight of each edge is set to min weight of all equivalent edges
+
+my $usage = "usage: adj-compact probe_map infile\n";
+die $usage if (@ARGV != 2);
+
+my $map_file = $ARGV[0];
+my $infile = $ARGV[1];
+
+# read adj
+my @edges = read_adj($infile);
+
+my %probe_map;
+
+foreach (@edges) {
+    my ($s, $t, undef) = split("\t", $_);
+    $probe_map{$s} = $s;
+    $probe_map{$t} = $t;
+}
+
+# read map file
+open(INPUT_MAP, "< $map_file") or die "error: can't open map file\n";
+
+my %rev_map;
+
+while (<INPUT_MAP>) {
+    chomp($_);
+    my ($key, $val) = split(" ", $_);
+    $val = $key if ($val eq "no_match");
+    if (defined $probe_map{$key}) {
+	if (not defined $rev_map{$val}) { @{$rev_map{$val}} = $key; }
+	else { push @{$rev_map{$val}}, $key; }
+    }
+}
+
+close(INPUT_MAP);
+
+# create merging map
+foreach (keys %rev_map) {
+    @{$rev_map{$_}} = sort(@{$rev_map{$_}});
+    my $key = @{$rev_map{$_}}[0];
+    my $len = scalar(@{$rev_map{$_}});
+    for (my $i = 1; $i < $len; $i++) { $probe_map{@{$rev_map{$_}}[$i]} = $key; }
+}
+
+for my $i (0 .. scalar(@edges) - 1) {
+    my ($s, $t, $w) = split("\t", $edges[$i]);
+    my $ns = $probe_map{$s};
+    my $nt = $probe_map{$t};
+    ($ns, $nt) = ($nt, $ns) if ($nt lt $ns);
+    $edges[$i] = "$ns\t$nt\t$w";
+}
+
+@edges = sort(@edges);
+
+# count nodes and edges
+my %nodes;
+my $num_edges = 0;
+
+my $ls = "";
+my $lt = "";
+
+foreach (@edges) {
+    my ($s, $t, $w) = split("\t", $_);
+    next if ($s eq $t);
+
+    $nodes{$s} = 1;
+    $nodes{$t} = 1;
+
+    $num_edges++ if (($s ne $ls) || ($t ne $lt));
+
+    $ls = $s;
+    $lt = $t;
+}
+
+my $num_nodes = scalar(keys %nodes);
+my $density = (2 * $num_edges) / (($num_nodes * $num_nodes) - $num_nodes);
+
+# rewrite adj header
+open(INPUT, "< $infile") or die "error: can't open input file\n";
+
+my $input;
+while ((defined ($input = <INPUT>)) && ($input =~ m/^>/)) { print $input; }
+
+close(INPUT);
+
+# generate output
+print "> New network dimensions: ...... " . $num_nodes . "x" . $num_edges . "\n";
+printf '> New network density: ......... %.5f', $density;
+
+$ls = "";
+$lt = "";
+
+foreach (@edges) {
+    my ($s, $t, $w) = split("\t", $_);
+    next if ($s eq $t);
+    if (($s ne $ls) || ($t ne $lt)) {
+	print "\n$s" if ($s ne $ls);
+	print "\t$t\t$w";
+    }
+    $ls = $s;
+    $lt = $t
+}
+
+print "\n";

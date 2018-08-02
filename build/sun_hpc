@@ -1,0 +1,14 @@
+# Name suffix
+SUFFIX=".sun"
+
+# C++ compiler
+CXX=mpicxx
+
+# C++ optimisation options (you may tune them for your environment)
+CXX_OPTIM="-library=stlport4 -fast -xipo=2 -xO5"
+
+# Linker flags
+LINKFLAGS="$CXX_OPTIM"
+
+# Linker libs
+LINKLIBS="-lmalloc"

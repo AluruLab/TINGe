@@ -1,0 +1,17 @@
+TARGET = tinge-mi$(SUFFIX) ;
+TARGETS = ;
+
+if $(C++) = "" | $(C++) = "cc" {
+  C++ = mpiCC ;
+}
+
+HDRS = "." ;
+if $(CXX_HDRS) != "" {
+  HDRS += $(CXX_HDRS) ;
+}
+
+C++FLAGS = "$(CXX_EXTRA)" ;
+OPTIM = "$(CXX_OPTIM)" ;
+LINK = $(C++) ;
+
+ALL_LOCATE_TARGET = $(TOP)/obj ;

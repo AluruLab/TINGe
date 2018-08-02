@@ -1,0 +1,5 @@
+# You can set CUDA compiler and options here.
+# NVCC=nvcc
+# NVCCFLAGS="-arch sm_13"
+# CUDAFLAGS="-L/usr/local/cuda/lib64"
+# CUDALIBS="-lcudart"

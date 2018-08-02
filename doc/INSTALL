@@ -1,0 +1,73 @@
+TINGe - Tool Inferring Networks of GEnes (using Mutual Information)
+
+
+1. Compatibility
+
+This software is implemented using C++ and MPI-2 standards. It has been
+tested on the following platforms:
+
+- IBM BlueGene/P (V1R4M2_200_2010-100508P) with IBM XL C++ V9.0
+- IBM BlueGene/L (up to V1R3M4_300_2008) with IBM XL C++ V9.0
+- SunOS OpenSolaris 5.11 snv_111b on x86, x86_64 with Sun Cluster 8.1
+- GNU/Linux (Gentoo, Debian, Ubuntu, Red Hat) on x86, x86_64, IBM QS20,
+  IBM QS22, with GCC => 3.4, Intel > 9.x, Sun Studio Express 12 and
+  MPICH2, OpenMPI
+
+Any similar platform should work seamlessly.
+
+
+2. Requirements
+
+To build the software, Jam Make Redux is required. It is available with most
+of the modern operating systems. If you are using IBM BlueGene, or if your
+OS does not provide "jam", you will have to compile it yourself:
+Obtain the Jam source code from here: http://freetype.sourceforge.net/jam/
+or from here: http://www.perforce.com/jam/jam.html, and follow included
+documentation for its compilation and installation.
+
+
+3. Installation
+
+To unpack the tarball, execute the following command:
+
+$ tar xfj TINGe-X.Y.tar.bz2
+
+where X and Y are the major and minor version number. Go to the TINGe-X.Y
+directory and select the appropriate architecture:
+
+$ cd TINGe-X.Y/
+$ ls -la build/*
+
+The default architecture is mpich. Start the building process for selected
+architecture:
+
+$ ./x-build ARCH install
+
+where ARCH is the selected architecture. For example:
+
+$ ./x-build bgp install
+
+will build TINGe for IBM BlueGene/P. If the build process is successful you
+should obtain bin directory with tinge-mi executable in it (and several
+additional tools). To finalize the installation process, copy the bin and
+doc directories to your preferred location, e.g.:
+
+$ su
+$ mkdir /opt/tinge
+$ cp -r bin /opt/tinge
+$ cp -r doc /opt/tinge
+
+
+4. Running
+
+The way in which you execute the tinge-mi program depends on the type of the
+architecture. Please follow instructions included in the tinge.1 man page
+for general guidelines.
+
+
+5. Copyright
+
+TINGe (C) 2007-2012 Jaroslaw Zola under GNU GPLv3 License.
+The build system (C) 2006-2010 Jaroslaw Zola under the MIT License.
+JAZ (C) 2004-2010 Jaroslaw Zola under the Boost Software License.
+MPIX (C) 2005-2008 Jaroslaw Zola under the Boost Software License.

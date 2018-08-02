@@ -1,0 +1,3 @@
+* Make the number of bins in BSpline MI dependent on the number of observations.
+* Work on single precision.
+* Add "bootstop".

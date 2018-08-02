@@ -1,0 +1,11 @@
+# Name suffix
+SUFFIX=""
+
+# C++ compiler
+CXX=mpicxx
+
+# C++ optimisation options (you may tune them for your environment)
+CXX_OPTIM="-O3"
+
+# C++ extra options (other than -Ox)
+CXX_EXTRA="-DNDEBUG -DMPICH_IGNORE_CXX_SEEK"

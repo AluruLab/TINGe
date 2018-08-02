@@ -1,0 +1,164 @@
+#!/usr/bin/perl
+
+# $Id$
+#
+# File: sif-compare
+# Developed: Mar 04, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+# *** currently edge types are ignored ***
+sub read_sif {
+    my $infile = $_[0];
+    my @edges;
+
+    open(INPUT, "< $infile") or die "error: can't open input file\n";
+
+    # process data
+    while (my $input = <INPUT>) {
+	chomp($input);
+
+	my @line = split(" ", $input);
+	my $len = scalar(@line);
+
+	my $s = $line[0];
+	for (my $i = 2; $i < $len; $i++) {
+	    my $t = $line[$i];
+	    my $edge = "$s\t$t";
+	    $edge = "$t\t$s" if ($t lt $s);
+	    push @edges, $edge if ($s ne $t);
+	}
+    }
+
+    close(INPUT);
+
+    # make array unique
+    my %keys;
+    @keys{@edges} = ();
+    @edges = keys %keys;
+
+    return @edges;
+}
+
+
+sub translate {
+    my %nodes = %{$_[0]};
+    my @edges = @{$_[1]};
+
+    for my $i (0..@edges - 1) {
+	my ($s, $t) = split(" ", $edges[$i]);
+	$s = $nodes{$s};
+	$t = $nodes{$t};
+	($s, $t) = ($t, $s) if ($t < $s);
+	$edges[$i] = "$s $t";
+    }
+
+    return @edges;
+}
+
+
+my $usage = "usage: sif-compare reference_sif test_sif\n";
+die $usage if (@ARGV != 2);
+
+# read files
+my @ref_edges = read_sif($ARGV[0]);
+my @test_edges = read_sif($ARGV[1]);
+
+# get list of nodes
+my %ref_nodes;
+
+foreach (@ref_edges) {
+    my ($s, $t) = split(" ", $_);
+    $ref_nodes{$s} = -1;
+    $ref_nodes{$t} = -1;
+}
+
+my $num_nodes = scalar(keys %ref_nodes);
+
+my $id = 0;
+foreach (sort(keys %ref_nodes)) {
+    $ref_nodes{$_} = $id;
+    $id++;
+}
+
+foreach (@test_edges) {
+    my ($s, $t) = split(" ", $_);
+    if (not defined $ref_nodes{$s}) {
+	$ref_nodes{$s} = $id;
+	$id++;
+    }
+    if (not defined $ref_nodes{$t}) {
+	$ref_nodes{$t} = $id;
+	$id++;
+    }
+}
+
+# translate
+@ref_edges = translate(\%ref_nodes, \@ref_edges);
+@test_edges = translate(\%ref_nodes, \@test_edges);
+
+my %ref_hash;
+$ref_hash{$_} = $_ foreach (@ref_edges);
+
+my %test_hash;
+$test_hash{$_} = $_ foreach (@test_edges);
+
+# compare
+my $fp = 0;
+my $tp = 0;
+my $fn = 0;
+
+foreach (@test_edges) {
+    if (defined $ref_hash{$_}) { $tp++; } else { $fp++; }
+}
+
+foreach (@ref_edges) { $fn++ if (not defined $test_hash{$_}); }
+
+my $tn = ($num_nodes**2 - $num_nodes) / 2;
+$tn = $tn - $tp - $fp - $fn;
+
+my $recall = $tp / ($tp + $fn);
+my $specificity = $tn / ($tn + $fp);
+my $precision = $tp / ($tp + $fp);
+
+my $fscore = 0;
+
+if ($recall + $precision > 0) {
+    $fscore = 2 * $recall * $precision / ($recall + $precision);
+}
+
+# print report
+print "Reference:   $ARGV[0]\n";
+print "Test:        $ARGV[1]\n";
+print "\n";
+print "TP:          $tp\n";
+print "FP:          $fp\n";
+print "FN:          $fn\n";
+print "TN:          $tn\n";
+print "\n";
+print "F-score:     $fscore\n";
+print "\n";
+print "recall (sensitivity) [TP / (TP + FN)]:   $recall\n";
+print "specificity [TN / (TN + FP)]:            $specificity\n";
+print "precision [TP / (TP + FP)]:              $precision\n";

@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+# $Id: exp-select 597 2010-06-23 01:06:56Z zola $
+#
+# File: exp-select
+# Developed: Jul 30, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+my $usage = "usage: exp-select probe_list infile\n";
+die $usage if (@ARGV != 2);
+
+my %probes;
+
+open(PROBES, "< $ARGV[0]") or die "error: can't open list file\n";
+
+while (<PROBES>) {
+    chomp($_);
+    $probes{$_} = 1;
+}
+
+close(PROBES);
+
+open(INPUT, "< $ARGV[1]") or die "error: can't open input file\n";
+
+my $head = <INPUT>;
+if (defined $head) {
+    print $head;
+    while (<INPUT>) {
+	my @line = split("\t", $_);
+	print $_ if (defined $probes{$line[0]});
+    }
+}
+
+close(INPUT);

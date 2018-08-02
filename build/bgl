@@ -1,0 +1,21 @@
+# Name suffix
+SUFFIX=".bg"
+
+# C++ compiler
+CXX=blrts_xlc++
+
+# C++ optimisation options (you may tune them for your environment)
+CXX_OPTIM="-O3 -qhot=level=1 -qipa=level=2 -qarch=440"
+# CXX_OPTIM="-qnoeh -O3 -qhot=level=1 -qipa=level=2 -qarch=440"
+
+# C++ extra headers
+CXX_HDRS="/bgl/BlueLight/ppcfloor/bglsys/include /usr/local/include"
+
+# C++ extra options (other than -Ox and -I)
+CXX_EXTRA="-g -DNDEBUG -DMPICH_IGNORE_CXX_SEEK"
+
+# Linker flags
+LINKFLAGS="$CXX_OPTIM -L/bgl/BlueLight/ppcfloor/bglsys/lib -L/usr/local/lib"
+
+# Linker libs
+LINKLIBS="-lmpich.rts -lcxxmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lmass -lmassv"

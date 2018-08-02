@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+# $Id: mcl2noa 597 2010-06-23 01:06:56Z zola $
+#
+# File: mcl2noa
+# Developed: Jun 22, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+my $usage = "usage: mcl2noa infile\n";
+die $usage if (@ARGV != 1);
+
+my $infile = $ARGV[0];
+my $outfile = "";
+
+($outfile = $infile) =~ s/\.mcl$//;
+$outfile .= ".noa";
+
+open(INPUT, "< $infile") or die "error: can't open input file\n";
+open(OUTPUT, "> $outfile") or die "error: can't open output file\n";
+
+my $pos = 1;
+print OUTPUT "MCL\n";
+
+while (<INPUT>) {
+    chomp($_);
+    my @line = split(' ', $_);
+    foreach (@line) {
+	print OUTPUT "$_ = $pos\n";
+    }
+    $pos++;
+}
+
+close(OUTPUT);
+close(INPUT);

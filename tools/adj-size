@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+
+# $Id: adj-size 597 2010-06-23 01:06:56Z zola $
+#
+# File: adj-size
+# Developed: Feb 26, 2009
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+#
+# Copyright 2007-2010 Jaroslaw Zola
+#
+# This file is part of TINGe.
+#
+# TINGe is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# TINGe is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with TINGe. If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+
+
+sub read_adj {
+    my $infile = $_[0];
+    my @edges;
+    open(INPUT, "< $infile") or die "error: can't open input file\n";
+
+    # skip comments
+    my $input;
+    while ((defined ($input = <INPUT>)) && ($input =~ m/^>/)) { }
+
+    if (defined $input) {
+	# process data
+	do {
+	    chomp($input);
+
+	    my @line = split("\t", $input);
+	    my $len = scalar(@line);
+	    die "error: data corrupted\n" if (($len < 3) || (($len - 1) % 2 != 0));
+
+	    my $s = $line[0];
+	    for (my $i = 1; $i < $len; $i += 2) {
+		my $t = $line[$i];
+		my $edge = "$s\t$t\t$line[$i + 1]";
+		$edge = "$t\t$s\t$line[$i + 1]" if ($t lt $s);
+		push @edges, $edge;
+	    }
+	} while ($input = <INPUT>);
+    }
+
+    close(INPUT);
+
+    # make array unique
+    my %keys;
+    @keys{@edges} = ();
+    @edges = keys %keys;
+
+    return @edges;
+}
+
+
+my $usage = "usage: adj-size infile\n";
+die $usage if (@ARGV != 1);
+
+# read adj
+my @edges = read_adj($ARGV[0]);
+
+# get probes
+my %probe_map;
+
+foreach (@edges) {
+    my ($s, $t, undef) = split("\t", $_);
+    $probe_map{$s} = $s;
+    $probe_map{$t} = $t;
+}
+
+my $num_nodes = scalar(keys %probe_map);
+my $num_edges = scalar(@edges);
+my $density = (2 * $num_edges) / (($num_nodes * $num_nodes) - $num_nodes);
+
+printf "%d %d %.5f", $num_nodes, $num_edges, $density;
+print "\n";

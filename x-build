@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# $Id: x-build 597 2010-06-23 01:06:56Z zola $
+#
+# File: x-build
+# Developed: Oct 02, 2007
+#
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+# Copyright (c) 2008-2010 Jaroslaw Zola
+# Distributed under the MIT License.
+# See accompanying LICENSE.
+# This file is part of x-build.
+
+echo "X-build Jam wrapper, (c) 2007-2010 Jaroslaw Zola <jaroslaw.zola@gmail.com>"
+
+# CHECK BUILDER
+if [ -z "$JAM" ]; then
+    JMR=`which jam 2> /dev/null`
+else
+    JMR=$JAM
+fi
+
+if [ -x "$JMR" ]; then
+    "$JMR" -v
+else
+    echo "Error: Jam Make Redux missing!"
+    echo ""
+    echo "You can specify alternative location through JAM variable"
+    echo "You can obtain Jam from http://www.perforce.com/jam/jam.html"
+    echo "or from http://freetype.sourceforge.net/jam/"
+    exit
+fi
+
+# BUILD FILES DIR
+BUILD=build
+
+# GET OPTIONS
+if [ -f "$BUILD/$1" ]; then
+    echo "Options from $BUILD/$1"
+    . "$BUILD/$1"
+    shift 1
+else
+    if [ -f "$1" ]; then
+	echo "Options from $1"
+	. "$1"
+	shift 1
+    else
+	echo "Using default options"
+	. "$BUILD/default"
+    fi
+fi
+
+# BOOST HEADERS
+. .boost
+
+if [ -n "$BOOST_HDRS" ]; then
+    if [ -z "$CXX_HDRS" ]; then
+	CXX_HDRS=$BOOST_HDRS
+    else
+	CXX_HDRS="$CXX_HDRS $BOOST_HDRS"
+    fi
+fi
+
+# CUDA OPTIONS
+. .cuda
+
+if [ -n "$NVCC" ]; then
+    if [ -n "$CUDAFLAGS" ]; then
+	LINKFLAGS="$CUDAFLAGS $LINKFLAGS"
+    fi
+    if [ -n "$CUDALIBS" ]; then
+	LINKLIBS="$CUDALIBS $LINKLIBS"
+    fi
+fi
+
+# RUN BUILDER
+ARG=$@
+
+case "$@" in
+    *clean*)
+	;;
+    *install*)
+	;;
+    *)
+        ARG="$ARG install"
+	;;
+esac
+
+"$JMR" -q \
+       -sC++=$CXX \
+       -sCXX_OPTIM="$CXX_OPTIM" -sCXX_EXTRA="$CXX_EXTRA" -sCXX_HDRS="$CXX_HDRS" \
+       -sLINKFLAGS="$LINKFLAGS" -sLINKLIBS="$LINKLIBS" \
+       -sARPROG="$AR" \
+       -sNVCC=$NVCC -sNVCCFLAGS="$NVCCFLAGS" \
+       -sSUFFIX=$SUFFIX $ARG

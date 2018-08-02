@@ -1,0 +1,57 @@
+# $Id: Jambase.Misc 597 2010-06-23 01:06:56Z zola $
+
+# Author: Jaroslaw Zola <jaroslaw.zola@gmail.com>
+# Copyright (c) 2008-2010 Jaroslaw Zola
+# Distributed under the MIT License.
+# See accompanying LICENSE.
+# This file is part of x-build.
+
+# CUDA compiler
+rule Nvcc {
+  Depends $(1) : $(2) ;
+  Clean clean : $(1) ;
+}
+
+# Workaround for CXX and CUDA files
+rule UserObject {
+  switch $(2) {
+    case *.cu : Nvcc $(1) : $(2) ;
+    case *.cxx : C++ $(1) : $(2) ;
+  }
+}
+
+# Installs files in the given directory
+rule InstallFiles {
+  local i ;
+  for i in $(2) {
+    InstallFile $(1) : $(i) ;
+  }
+}
+
+# Creates directory during installation
+rule InstallDir {
+  Depends install : $(1) ;
+  MkDir1 $(1) ;
+}
+
+# Removes directory, works only for UNIX-like systems
+DELTREE ?= "rm -rf" ;
+
+rule CleanDir
+{
+  Always $(1) ;
+  NotFile $(1) ;
+  NoCare $(2) ;
+}
+
+# *** Actions ***
+
+ECHO ?= "echo" ;
+
+actions piecemeal together existing CleanDir {
+$(DELTREE) $(2)
+}
+
+actions Nvcc {
+$(NVCC) -c -o $(1)    $(NVCCFLAGS) $(2)
+}

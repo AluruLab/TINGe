@@ -1,0 +1,8 @@
+# Name suffix
+SUFFIX=".bgp"
+
+# C++ compiler
+CXX=mpixlcxx
+
+# C++ optimisation options (you may tune them for your environment)
+CXX_OPTIM="-O3 -qhot=level=1 -qipa=level=2 -qarch=450"

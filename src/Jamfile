@@ -1,0 +1,13 @@
+SubDir TOP src ;
+
+LOCATE_TARGET = $(TOP)/obj ;
+
+SOURCE = [ GLOB $(TOP)/src : *.cpp ] ;
+SOURCE = $(SOURCE:D="") ;
+
+TARGETS += $(TARGET) ;
+
+Library $(TARGET) : $(SOURCE) ;
+LinkLibraries $(TARGET) : $(TARGET) ;
+
+Main $(TARGET) : main.cxx ;

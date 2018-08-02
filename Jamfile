@@ -1,0 +1,11 @@
+include Jambase.Misc ;
+
+TOP = . ;
+
+SubInclude TOP src ;
+SubInclude TOP tools ;
+
+SubInclude TOP obj ;
+
+CleanDir distclean : bin ;
+Depends  distclean : clean ;
