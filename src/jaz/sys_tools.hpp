@@ -80,7 +80,7 @@ namespace jaz {
    *  @return size of allocated memory in bytes.
    */
   inline unsigned long int mem_usage() {
-      struct mallinfo m = mallinfo();
+      struct ::mallinfo m = mallinfo();
       unsigned long int mem = m.uordblks + m.hblkhd;
       return mem;
   } // mem_usage
