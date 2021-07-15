@@ -1,10 +1,8 @@
 TINGe
 ===
 
-Tool Inferring Networks of GEnes (using Mutual Information)
 
-
-TINGe – Tool for Inferring Networks of GEnes, is a parallel and multi-platform framework for reconstructing gene regulatory networks from large
+TINGe -- **T**ool for **I**nferring **N**etworks of **Ge**nes, is a parallel and multi-platform framework for reconstructing gene regulatory networks from large
 gene expression data. It uses parallel processing, information theoretic criteria and statistical testing to derive networks with thousands of genes
 from microarray sets with thousands of observations. TINGe has been used to reconstruct a whole-genome network of Arabidopsis thaliana from 3,546 microarray
 measurements, which comprises of 15,495 genes. 
